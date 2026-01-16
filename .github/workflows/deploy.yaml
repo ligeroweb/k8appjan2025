@@ -1,73 +1,58 @@
-name: "Production 3-Tier Deployment"
+name: "Production 3-Tier Deploy"
 
 on:
   push:
-    branches:
-      - main  # Triggers only when code is pushed to the main branch
+    branches: [ main ]
 
-# --- GLOBAL PERMISSIONS (Do not change) ---
+# CRITICAL: Top-level permissions for OIDC
 permissions:
   id-token: write
   contents: read
 
 jobs:
-  deploy:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
-      - name: Debug OIDC Environment
+      # Diagnostic Step: Ensures GitHub is actually providing the OIDC Token
+      - name: Verify OIDC Token Availability
         run: |
-          echo "Checking GitHub OIDC Environment Variables..."
-          if [[ -n "$ACTIONS_ID_TOKEN_REQUEST_URL" ]]; then
-            echo "✅ GitHub OIDC Service is READY"
-          else
-            echo "❌ GitHub OIDC Service is MISSING. Permission 'id-token: write' is not active."
+          if [[ -z "$ACTIONS_ID_TOKEN_REQUEST_URL" ]]; then
+            echo "❌ ERROR: id-token permission not granted. Check Repository Settings > Actions > General."
             exit 1
           fi
+          echo "✅ GitHub OIDC Token Service is available."
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: us-east-1
-          role-session-name: GitHubActionsDeployment
-          # Note: 'audience' is usually handled automatically, 
-          # but we'll leave it to default unless specifically needed.
+          role-session-name: EKS-Deployment-Session
 
-      # 3. Login to Amazon ECR
       - name: Login to Amazon ECR
         id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+        uses: aws-actions/amazon-ecr-login@v2
 
-      # 4. Build, Tag, and Push Backend Image
       - name: Build and Push Backend
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: latest
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          docker build -t $ECR_REGISTRY/prod-backend:$IMAGE_TAG ./src/backend
-          docker push $ECR_REGISTRY/prod-backend:$IMAGE_TAG
+          docker build -t $REGISTRY/prod-backend:latest ./src/backend
+          docker push $REGISTRY/prod-backend:latest
 
-      # 5. Build, Tag, and Push Frontend Image
       - name: Build and Push Frontend
         env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_TAG: latest
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         run: |
-          docker build -t $ECR_REGISTRY/prod-frontend:$IMAGE_TAG ./src/frontend
-          docker push $ECR_REGISTRY/prod-frontend:$IMAGE_TAG
+          docker build -t $REGISTRY/prod-frontend:latest ./src/frontend
+          docker push $REGISTRY/prod-frontend:latest
 
-      # 6. Update Kubeconfig to talk to your EKS Cluster
-      - name: Update Kubeconfig
-        run: |
-          aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }} --region us-east-1
-
-      # 7. Replace <ACCOUNT_ID> in YAML and Deploy to EKS
       - name: Deploy to EKS
         run: |
-          # Use sed to swap the placeholder in our YAML with the actual Account ID
+          aws eks update-kubeconfig --name prod-cluster --region us-east-1
+          # Fill in the Account ID in your K8s manifests
           sed -i "s/<ACCOUNT_ID>/${{ secrets.AWS_ACCOUNT_ID }}/g" k8s/app-stack.yaml
           kubectl apply -f k8s/app-stack.yaml
-
