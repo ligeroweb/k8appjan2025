@@ -44,6 +44,6 @@ jobs:
         run: |
           aws eks update-kubeconfig --name prod-cluster --region us-east-1
           # Inject the real Account ID into the manifest
-          sed -i "s/659260838969/${{ secrets.AWS_ACCOUNT_ID }}/g" k8s/app-stack.yaml
+          sed -i "s/211125562720/${{ secrets.AWS_ACCOUNT_ID }}/g" k8s/app-stack.yaml
           # Added --validate=false to bypass the credential-check error
           kubectl apply -f k8s/app-stack.yaml --validate=false
