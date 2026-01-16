@@ -56,7 +56,7 @@ module "eks" {
 # 1. Create the OIDC Provider (The "Handshake")
 resource "aws_iam_openid_connect_provider" "github" {
   url             = "https://token.actions.githubusercontent.com"
-  client_id_list  = ["sts.amazonaws.com"]
+  client_id_list  = ["sts.amazonaws.com","https://github.com/ligeroweb"]
   # This is the standard thumbprint for GitHub's OIDC certificate
   thumbprint_list = ["1b5113700940728c0b5c1630b427847701e64984"]
 }
