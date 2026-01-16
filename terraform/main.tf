@@ -64,6 +64,11 @@ module "eks" {
       capacity_type  = "ON_DEMAND"
     }
   }
+  cluster_addons = {
+    coredns    = {}
+    kube-proxy = {}
+    vpc-cni    = {}
+  }
 }
 
 # --- 4. OIDC & GITHUB ACTIONS SECURITY (Identity Layer) ---
