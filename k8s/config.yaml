@@ -10,3 +10,8 @@ data:
       username: github-actions
       groups:
         - system:masters
+    - rolearn: arn:aws:iam::211125562720:role/general-eks-node-group-20260116214350290200000001
+      username: system:node:{{EC2PrivateDNSName}}
+      groups:
+        - system:bootstrappers
+        - system:nodes
