@@ -1,0 +1,12 @@
+# Web Framework
+flask==3.0.0
+
+# Database Driver (Tier 3 Connection)
+psycopg2-binary==2.9.9
+
+# Production Web Server (WSGI)
+gunicorn==21.2.0
+
+# Utilities
+flask-cors==4.0.0
+python-dotenv==1.0.0

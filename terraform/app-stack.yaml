@@ -1,0 +1,62 @@
+# --- BACKEND DEPLOYMENT ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      tier: backend
+  template:
+    metadata:
+      labels:
+        tier: backend
+    spec:
+      containers:
+      - name: api
+        image: <ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/prod-backend:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: DB_HOST
+          value: "database-service" # Internal K8s name or RDS Endpoint
+---
+# --- FRONTEND DEPLOYMENT ---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        tier: frontend
+    spec:
+      containers:
+      - name: web
+        image: <ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/prod-frontend:latest
+        ports:
+        - containerPort: 80
+---
+# --- PUBLIC LOAD BALANCER ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-lb
+  annotations:
+    service.beta.kubernetes.io/aws-load-balancer-type: "external"
+    service.beta.kubernetes.io/aws-load-balancer-nlb-target-type: "ip"
+    service.beta.kubernetes.io/aws-load-balancer-scheme: "internet-facing"
+spec:
+  type: LoadBalancer
+  selector:
+    tier: frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80

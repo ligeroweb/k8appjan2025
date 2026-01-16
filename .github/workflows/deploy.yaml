@@ -1,0 +1,59 @@
+name: "Production 3-Tier Deployment"
+
+on:
+  push:
+    branches:
+      - main  # Triggers only when code is pushed to the main branch
+
+jobs:
+  deploy:
+    name: "Build, Push and Deploy"
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout the code from your repo
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      # 2. Authenticate to AWS using the Secrets you just created
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: us-east-1
+
+      # 3. Login to Amazon ECR
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      # 4. Build, Tag, and Push Backend Image
+      - name: Build and Push Backend
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: latest
+        run: |
+          docker build -t $ECR_REGISTRY/prod-backend:$IMAGE_TAG ./src/backend
+          docker push $ECR_REGISTRY/prod-backend:$IMAGE_TAG
+
+      # 5. Build, Tag, and Push Frontend Image
+      - name: Build and Push Frontend
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: latest
+        run: |
+          docker build -t $ECR_REGISTRY/prod-frontend:$IMAGE_TAG ./src/frontend
+          docker push $ECR_REGISTRY/prod-frontend:$IMAGE_TAG
+
+      # 6. Update Kubeconfig to talk to your EKS Cluster
+      - name: Update Kubeconfig
+        run: |
+          aws eks update-kubeconfig --name ${{ secrets.EKS_CLUSTER_NAME }} --region us-east-1
+
+      # 7. Replace <ACCOUNT_ID> in YAML and Deploy to EKS
+      - name: Deploy to EKS
+        run: |
+          # Use sed to swap the placeholder in our YAML with the actual Account ID
+          sed -i "s/<ACCOUNT_ID>/${{ secrets.AWS_ACCOUNT_ID }}/g" k8s/app-stack.yaml
+          kubectl apply -f k8s/app-stack.yaml

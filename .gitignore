@@ -1,0 +1,37 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual env
+.venv/
+devops/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+
+# VSCode
+.vscode/
+# --- Terraform ---
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+.terraform.lock.hcl
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+venv/
+.env
+
+# --- OS/IDE ---
+.DS_Store
+.vscode/
+.idea/
+
+# --- AWS ---
+# Never push credentials
+.aws/
