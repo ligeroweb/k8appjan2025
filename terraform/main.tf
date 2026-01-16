@@ -29,7 +29,10 @@ module "vpc" {
 
   enable_nat_gateway = true
   single_nat_gateway = true # Cost-effective for setup, set to false for multi-AZ NAT in heavy prod
-
+  one_nat_gateway_per_az = false
+  # This ensures the VPC has the attributes required for EKS nodes to resolve the API
+  enable_dns_hostnames = true
+  enable_dns_support   = true
   public_subnet_tags = {
     "kubernetes.io/role/elb" = "1"
   }
@@ -88,7 +91,7 @@ resource "aws_iam_role" "github_oidc_role" {
         Condition = {
           StringLike = {
             # !!! REPLACE <OWNER>/<REPO> WITH YOUR ACTUAL GITHUB INFO !!!
-            "token.actions.githubusercontent.com:sub": "repo:ligeroweb/k8appjan2025:*"
+            "token.actions.githubusercontent.com:sub": "repo:ligeroweb/k8appjan2025bectl get s:*"
           },
           StringEquals = {
             "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"

@@ -22,6 +22,18 @@ spec:
         - name: DB_HOST
           value: "database-service" # Internal K8s name or RDS Endpoint
 ---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-lb  # Changed name for clarity
+spec:
+  type: LoadBalancer # This gives the backend a public URL too
+  selector:
+    app: backend
+  ports:
+  - protocol: TCP
+    port: 5000
+    targetPort: 5000
 # --- FRONTEND DEPLOYMENT ---
 apiVersion: apps/v1
 kind: Deployment
