@@ -4,33 +4,22 @@ on:
   push:
     branches: [ main ]
 
-# CRITICAL: Top-level permissions for OIDC
 permissions:
   id-token: write
   contents: read
 
 jobs:
-  build-and-deploy:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
-
-      # Diagnostic Step: Ensures GitHub is actually providing the OIDC Token
-      - name: Verify OIDC Token Availability
-        run: |
-          if [[ -z "$ACTIONS_ID_TOKEN_REQUEST_URL" ]]; then
-            echo "❌ ERROR: id-token permission not granted. Check Repository Settings > Actions > General."
-            exit 1
-          fi
-          echo "✅ GitHub OIDC Token Service is available."
 
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: us-east-1
-          role-session-name: EKS-Deployment-Session
 
       - name: Login to Amazon ECR
         id: login-ecr
@@ -53,6 +42,6 @@ jobs:
       - name: Deploy to EKS
         run: |
           aws eks update-kubeconfig --name prod-cluster --region us-east-1
-          # Fill in the Account ID in your K8s manifests
+          # Inject the real Account ID into the manifest
           sed -i "s/<ACCOUNT_ID>/${{ secrets.AWS_ACCOUNT_ID }}/g" k8s/app-stack.yaml
           kubectl apply -f k8s/app-stack.yaml
