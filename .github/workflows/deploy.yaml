@@ -5,9 +5,10 @@ on:
     branches:
       - main  # Triggers only when code is pushed to the main branch
 
+# --- GLOBAL PERMISSIONS (Do not change) ---
 permissions:
-  id-token: write   # This is REQUIRED for OIDC
-  contents: read    # This is REQUIRED for Checkout
+  id-token: write
+  contents: read
 
 jobs:
   deploy:
@@ -16,11 +17,24 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v3
 
+      - name: Debug OIDC Environment
+        run: |
+          echo "Checking GitHub OIDC Environment Variables..."
+          if [[ -n "$ACTIONS_ID_TOKEN_REQUEST_URL" ]]; then
+            echo "✅ GitHub OIDC Service is READY"
+          else
+            echo "❌ GitHub OIDC Service is MISSING. Permission 'id-token: write' is not active."
+            exit 1
+          fi
+
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }} # Use the ARN from Terraform output
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
           aws-region: us-east-1
+          role-session-name: GitHubActionsDeployment
+          # Note: 'audience' is usually handled automatically, 
+          # but we'll leave it to default unless specifically needed.
 
       # 3. Login to Amazon ECR
       - name: Login to Amazon ECR
@@ -56,13 +70,4 @@ jobs:
           # Use sed to swap the placeholder in our YAML with the actual Account ID
           sed -i "s/<ACCOUNT_ID>/${{ secrets.AWS_ACCOUNT_ID }}/g" k8s/app-stack.yaml
           kubectl apply -f k8s/app-stack.yaml
-      # 8. Verify Deployment
-      - name: Debug OIDC Token
-        run: |
-          echo "Checking if ACTIONS_ID_TOKEN_REQUEST_URL is set..."
-          if [ -z "$ACTIONS_ID_TOKEN_REQUEST_URL" ]; then
-            echo "OIDC Token URL is NOT set. Check your permissions block!"
-          else
-            echo "OIDC Token URL is active."
-          fi       
 
