@@ -94,7 +94,7 @@ resource "aws_iam_role" "github_oidc_role" {
             "token.actions.githubusercontent.com:sub": "repo:ligeroweb/k8appjan2025bectl get s:*"
           },
           StringEquals = {
-            "token.actions.githubusercontent.com:aud": "sts.amazonaws.com"
+            "token.actions.githubusercontent.com:sub": "sts.amazonaws.com"
           }
         }
       }

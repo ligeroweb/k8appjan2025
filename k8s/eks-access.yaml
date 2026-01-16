@@ -5,7 +5,7 @@ metadata:
   namespace: kube-system
 data:
   mapRoles: |
-    - rolearn: arn:aws:iam::659260838969:role/github-oidc-role
+    - rolearn: arn:aws:iam::211125562720:role/github-oidc-role
       username: github-actions
       groups:
         - system:masters

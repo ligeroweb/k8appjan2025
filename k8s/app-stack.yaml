@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: 659260838969.dkr.ecr.us-east-1.amazonaws.com/prod-backend:latest
+        image: 211125562720.dkr.ecr.us-east-1.amazonaws.com/prod-backend:latest
         ports:
         - containerPort: 8080
         env:
@@ -32,7 +32,7 @@ spec:
     app: backend
   ports:
   - protocol: TCP
-    port: 5000deploy
+    port: 5000
     targetPort: 5000
 # --- FRONTEND DEPLOYMENT ---
 apiVersion: apps/v1
@@ -51,7 +51,7 @@ spec:
     spec:
       containers:
       - name: web
-        image: 659260838969.dkr.ecr.us-east-1.amazonaws.com/prod-frontend:latest
+        image: 211125562720.dkr.ecr.us-east-1.amazonaws.com/prod-frontend:latest
         ports:
         - containerPort: 80
 ---
