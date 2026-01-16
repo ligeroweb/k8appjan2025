@@ -14,7 +14,7 @@ spec:
         app: api-backend
     spec:
       containers:
-      - name: api
+      - name: backend
         image: 659260838969.dkr.ecr.us-east-1.amazonaws.com/prod-backend:latest
         ports:
         - containerPort: 8080
