@@ -1,0 +1,12 @@
+# Update your aws-auth.yaml with the new Account ID
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: aws-auth
+  namespace: kube-system
+data:
+  mapRoles: |
+    - rolearn: arn:aws:iam::211125562720:role/github-oidc-role
+      username: github-actions
+      groups:
+        - system:masters
