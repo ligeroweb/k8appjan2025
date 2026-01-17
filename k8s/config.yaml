@@ -6,11 +6,11 @@ metadata:
   namespace: kube-system
 data:
   mapRoles: |
-    - rolearn: arn:aws:iam::211125562720:role/github-oidc-role
+    - rolearn: arn:aws:iam::180944173583:role/github-oidc-role
       username: github-actions
       groups:
         - system:masters
-    - rolearn: arn:aws:iam::211125562720:role/general-eks-node-group-20260116214350290200000001
+    - rolearn: arn:aws:iam::180944173583:role/general-eks-node-group-20260117022555448700000001
       username: system:node:{{EC2PrivateDNSName}}
       groups:
         - system:bootstrappers

@@ -27,8 +27,8 @@ module "vpc" {
   private_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
   public_subnets  = ["10.0.101.0/24", "10.0.102.0/24"]
 
-  enable_nat_gateway = true
-  single_nat_gateway = true # Cost-effective for setup, set to false for multi-AZ NAT in heavy prod
+  enable_nat_gateway     = true
+  single_nat_gateway     = true # Cost-effective for setup, set to false for multi-AZ NAT in heavy prod
   one_nat_gateway_per_az = false
   # This ensures the VPC has the attributes required for EKS nodes to resolve the API
   enable_dns_hostnames = true
@@ -91,15 +91,19 @@ resource "aws_iam_role" "github_oidc_role" {
         Action = "sts:AssumeRoleWithWebIdentity",
         Effect = "Allow",
         Principal = {
-          Federated = aws_iam_openid_connect_provider.github.arn
+          Federated = "arn:aws:iam::211125562720:oidc-provider/token.actions.githubusercontent.com"
         },
         Condition = {
           StringLike = {
             # !!! REPLACE <OWNER>/<REPO> WITH YOUR ACTUAL GITHUB INFO !!!
-            "token.actions.githubusercontent.com:sub": "repo:ligeroweb/k8appjan2025bectl get s:*"
+            "token.actions.githubusercontent.com:sub" = [
+              "repo:ligeroweb/k8appjan2025/*",
+              "repo:satyamac/k8appjan2025:*",
+              "repo:satyamac/k8appjan2025:environment:*"
+            ]
           },
           StringEquals = {
-            "token.actions.githubusercontent.com:sub": "sts.amazonaws.com"
+            "token.actions.githubusercontent.com:aud" : "sts.amazonaws.com"
           }
         }
       }
